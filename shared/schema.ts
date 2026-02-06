@@ -1,18 +1,20 @@
-import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-export const users = pgTable("users", {
-  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
+export const baths = pgTable("baths", {
+  id: serial("id").primaryKey(),
+  date: timestamp("date").defaultNow().notNull(),
+  durationMinutes: integer("duration_minutes").notNull(),
+  temperatureCelsius: integer("temperature_celsius"),
+  rating: integer("rating").notNull(), // 1-5 scale
+  notes: text("notes"),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-});
+export const insertBathSchema = createInsertSchema(baths).omit({ id: true });
 
-export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
+export type Bath = typeof baths.$inferSelect;
+export type InsertBath = z.infer<typeof insertBathSchema>;
+
+export type CreateBathRequest = InsertBath;
+export type UpdateBathRequest = Partial<InsertBath>;
